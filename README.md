@@ -1,4 +1,4 @@
-# Terraform Assisted Install - Red Hat OpenShift Cluster Deployment
+# Terraform Assisted Install
 
 This Terraform configuration provides an Infrastructure-as-Code approach to deploying OpenShift clusters using the **Red Hat Assisted Installer API** 
 
@@ -50,42 +50,19 @@ terraform apply
 ### Get Discovery ISO
 After deployment, get the discovery ISO URL:
 ```bash
-# Option 1: Use terraform output
 terraform output discovery_iso_url
-
-
-### Download and Boot ISO
-```bash
+```
 # Download the discovery ISO
+```bash
 curl -L "$(terraform output -raw discovery_iso_url)" -o discovery.iso
-
+```
 # Boot your target hosts from this ISO
 # Hosts will automatically register with the cluster
-```
 
-### Monitor Installation
-```bash
-# Monitor cluster progress
-./monitor-cluster.sh
 
 # Check cluster status
+```bash
 terraform output cluster_status
-```
-
-## 📁 Project Structure
-```
-├── main.tf                 # Main terraform configuration
-├── variables.tf            # Variable definitions
-├── terraform.tfvars       # Your configuration values
-├── modules/
-│   └── assisted-installer/ # Assisted installer module
-├── scripts/
-│   ├── monitor-cluster.sh      # Monitor cluster status
-│   └── setup-credentials.sh   # Setup script
-└── tmp/                   # Temporary files (auto-generated)
-    ├── cluster_response.json
-    ├── infra_env_response.json
-    └── iso_download.json
 ```
 
 ## Configuration
