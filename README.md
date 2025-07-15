@@ -28,31 +28,10 @@ Download from https://github.com/openshift-online/ocm-cli/releases
 ```bash
 ./ocm-browser-auth.sh
 ```
-
 **Verify authentication:**
 ```bash
 ocm whoami
 ```
-### Prerequisites Check
-
-# Verify Terraform is installed
-terraform version
-
-# Verify required tools
-which curl jq
-```
-
-### Configuration
-1. **Copy the example configuration:**
-   ```bash
-   cp terraform.tfvars.example terraform.tfvars
-   ```
-
-2. **Edit `terraform.tfvars`** with your values:
-   - Get your pull secret from: https://console.redhat.com/openshift/install/pull-secret
-   - Replace SSH public key with your actual key
-   - Configure hosts according to your environment (minimum 3 masters for HA)
-
 ### Deployment
 ```bash
 # Initialize Terraform
