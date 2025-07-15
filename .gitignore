@@ -12,6 +12,35 @@ crash.*.log
 # Exclude all .tfvars files, which are likely to contain sensitive data
 *.tfvars
 *.tfvars.json
+!terraform.tfvars.example
+
+# Authentication and secrets
+auth/
+secrets/
+*.key
+*.pem
+pull-secret.txt
+pull-secret.json
+api-token.txt
+ssh-keys/
+*.pub
+id_rsa*
+id_ed25519*
+.env
+.env.local
+*.secrets
+
+# Downloaded ISOs and cluster artifacts
+discovery.iso
+*.iso
+cluster-*.json
+infra-env-*.json
+
+# Output files with potentially sensitive data
+deployment.json
+cluster_response.json
+infra_env_response.json
+iso_*.json
 
 # Ignore override files as they are usually used to override resources locally and so
 # are not checked in

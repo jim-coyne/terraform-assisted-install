@@ -1,19 +1,19 @@
 variable "cluster_name" {
   description = "Name of the OpenShift cluster"
   type        = string
-  default     = "test-cluster"
+  default     = "openshift-demo"
 }
 
 variable "openshift_version" {
   description = "OpenShift version to install"
   type        = string
-  default     = "4.14"
+  default     = "4.15"
 }
 
 variable "base_dns_domain" {
   description = "Base DNS domain for the cluster"
   type        = string
-  default     = "example.com"
+  default     = "demo.local"
 }
 
 variable "cluster_network_cidr" {
@@ -37,27 +37,20 @@ variable "host_network_cidr" {
 variable "ssh_public_key" {
   description = "SSH public key for cluster access"
   type        = string
-  default     = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC7S5..."
+  default     = "ssh-rsa AAAAB3NzaC1yc2E... YOUR_PUBLIC_KEY_HERE"
 }
 
 variable "pull_secret" {
   description = "OpenShift pull secret"
   type        = string
   sensitive   = true
-  default     = "{\"auths\":{\"fake.io\":{\"auth\":\"test\"}}}"
+  default     = "{\"auths\":{\"cloud.openshift.com\":{\"auth\":\"YOUR_AUTH_TOKEN\",\"email\":\"your.email@example.com\"}}}"
 }
 
 variable "assisted_service_url" {
   description = "URL of the Assisted Installer service"
   type        = string
   default     = "https://api.openshift.com"
-}
-
-variable "api_token" {
-  description = "API token for authentication"
-  type        = string
-  sensitive   = true
-  default     = "test-token-123"
 }
 
 variable "hosts" {

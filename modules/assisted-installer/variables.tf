@@ -44,12 +44,6 @@ variable "assisted_service_url" {
   type        = string
 }
 
-variable "api_token" {
-  description = "API token for authentication"
-  type        = string
-  sensitive   = true
-}
-
 variable "hosts" {
   description = "List of hosts to be added to the cluster"
   type = list(object({
@@ -62,10 +56,15 @@ variable "hosts" {
 variable "proxy_settings" {
   description = "Proxy configuration for the cluster"
   type = object({
-    http_proxy  = string
-    https_proxy = string
-    no_proxy    = string
+    http_proxy  = optional(string)
+    https_proxy = optional(string)
+    no_proxy    = optional(string)
   })
+  default = {
+    http_proxy  = null
+    https_proxy = null
+    no_proxy    = null
+  }
 }
 
 variable "custom_manifests" {
@@ -74,9 +73,11 @@ variable "custom_manifests" {
     filename = string
     content  = string
   }))
+  default = []
 }
 
 variable "additional_ntp_sources" {
   description = "Additional NTP sources for cluster nodes"
   type        = list(string)
+  default     = []
 }

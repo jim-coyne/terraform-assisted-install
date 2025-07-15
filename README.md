@@ -1,120 +1,225 @@
-# Terraform Assisted Install
+# Terraform Assisted Install - Red Hat OpenShift Cluster Deployment
 
-This Terraform configuration provides an Infrastructure-as-Code approach to deploying OpenShift clusters using the Assisted Installer service with enterprise features and custom operator support.
-
-## Features
-
-- **Automated cluster creation and configuration**
-- **Host management and registration** (supports 3 control plane + 3 worker nodes)
-- **Discovery ISO generation**
-- **Installation monitoring**
-- **Modular design for reusability**
-- **Enterprise proxy support** (HTTP/HTTPS proxy with no-proxy bypass)
-- **Custom manifest deployment** (Cilium, ACI Operator, GPU Operator)
-- **Additional NTP sources configuration**
-- **Network policy management**
-- **GPU worker node support with custom kernel parameters**
+This Terraform configuration provides an Infrastructure-as-Code approach to deploying OpenShift clusters using the **Red Hat Assisted Installer API** service with enterprise features and OCM authentication.
 
 ## Prerequisites
 
 - Terraform >= 1.0
-- Access to OpenShift Assisted Installer service
-- Valid API token
-- OpenShift pull secret
+- OCM CLI installed and configured
+- Access to Red Hat OpenShift Assisted Installer service
+- OpenShift pull secret (from console.redhat.com/openshift/install/pull-secret)
+- `curl` and `jq` command-line tools
 
-## Usage
+## Authentication Setup
 
-1. Copy the example configuration:
+This configuration uses OCM (OpenShift Cluster Manager) CLI for authentication.
+
+### Install OCM CLI
+
+**macOS (with Homebrew):**
+```bash
+brew install ocm
+```
+
+**Linux/Other:**
+Download from https://github.com/openshift-online/ocm-cli/releases
+
+### Login to OCM
+
+**Get your offline token:**
+1. Visit https://console.redhat.com/openshift/token
+2. Copy the "Offline Token" (it starts with `eyJ...`)
+
+**Login with the token:**
+```bash
+ocm login --token=YOUR_OFFLINE_TOKEN_HERE
+```
+
+**Verify authentication:**
+```bash
+ocm whoami
+```
+
+## Quick Setup & Deployment
+
+### Prerequisites Check
+```bash
+# Verify OCM is installed and authenticated
+ocm whoami
+
+# Verify Terraform is installed
+terraform version
+
+# Verify required tools
+which curl jq
+```
+
+### Configuration
+1. **Copy the example configuration:**
    ```bash
    cp terraform.tfvars.example terraform.tfvars
    ```
 
-2. Edit `terraform.tfvars` with your specific values
+2. **Edit `terraform.tfvars`** with your values:
+   - Get your pull secret from: https://console.redhat.com/openshift/install/pull-secret
+   - Replace SSH public key with your actual key
+   - Configure hosts according to your environment (minimum 3 masters for HA)
 
-3. Initialize and apply:
-   ```bash
-   terraform init
-   terraform plan
-   terraform apply
-   ```
+### Deployment
+```bash
+# Initialize Terraform
+terraform init
+
+# Validate configuration
+terraform validate
+
+# Plan deployment
+terraform plan
+
+# Deploy the cluster
+terraform apply
+```
+
+### Get Discovery ISO
+After deployment, get the discovery ISO URL:
+```bash
+# Option 1: Use terraform output
+terraform output discovery_iso_url
+
+
+### Download and Boot ISO
+```bash
+# Download the discovery ISO
+curl -L "$(terraform output -raw discovery_iso_url)" -o discovery.iso
+
+# Boot your target hosts from this ISO
+# Hosts will automatically register with the cluster
+```
+
+### Monitor Installation
+```bash
+# Monitor cluster progress
+./monitor-cluster.sh
+
+# Check cluster status
+terraform output cluster_status
+```
+
+## 📁 Project Structure
+```
+├── main.tf                 # Main terraform configuration
+├── variables.tf            # Variable definitions
+├── terraform.tfvars       # Your configuration values
+├── modules/
+│   └── assisted-installer/ # Assisted installer module
+├── scripts/
+│   ├── get-discovery-iso.sh    # Get ISO download URL
+│   ├── monitor-cluster.sh      # Monitor cluster status
+│   └── setup-credentials.sh   # Setup script
+└── tmp/                   # Temporary files (auto-generated)
+    ├── cluster_response.json
+    ├── infra_env_response.json
+    └── iso_download.json
+```
 
 ## Configuration
 
 ### Required Variables
+- **`cluster_name`**: Name of your OpenShift cluster
+- **`base_dns_domain`**: DNS domain for cluster endpoints  
+- **`ssh_public_key`**: SSH key for cluster access
+- **`pull_secret`**: OpenShift pull secret (JSON format)
+- **`hosts`**: List of hosts (minimum 3 masters for HA)
 
-- `cluster_name`: Name of your OpenShift cluster
-- `base_dns_domain`: DNS domain for cluster endpoints
-- `ssh_public_key`: SSH key for cluster access
-- `pull_secret`: OpenShift pull secret
-- `api_token`: Assisted Installer API token
-- `hosts`: List of hosts to add to the cluster (each with hostname, role, mac_address)
+### Optional Variables
+- **`proxy_settings`**: HTTP/HTTPS proxy configuration
+- **`custom_manifests`**: Custom Kubernetes manifests
+- **`additional_ntp_sources`**: Additional NTP time sources
+- **`openshift_version`**: OpenShift version (default: 4.15)
 
-### Optional Enterprise Features
-
-- `proxy_settings`: HTTP/HTTPS proxy configuration with no-proxy bypass rules
-- `additional_ntp_sources`: Additional NTP servers for time synchronization
-- `custom_manifests`: List of custom Kubernetes manifests to deploy
-
-### Sample Custom Manifests Included
-
-The configuration includes examples for:
-- **Cilium Operator**: Advanced networking with eBPF
-- **ACI Operator**: Cisco ACI integration for enterprise networking
-- **GPU Operator**: NVIDIA GPU support for AI/ML workloads
-- **Network Policies**: Security policies for namespace isolation
-- **MachineConfig**: Custom kernel parameters for GPU nodes
-
-## Outputs
-
-- `cluster_id`: Unique identifier for the created cluster
-- `discovery_iso_url`: Download URL for the discovery ISO
-- `cluster_status`: Current installation status
-
-## Module Structure
-
-- `modules/assisted-installer/`: Core functionality
-  - Cluster creation and management
-  - Host registration and configuration
-  - Proxy and NTP configuration
-  - Custom manifest deployment
-  - Installation orchestration and monitoring
-
-## Enterprise Features
-
-### Proxy Support
-Configure enterprise proxy settings for cluster communications:
+### Host Configuration
+Each host requires:
 ```hcl
-proxy_settings = {
-  http_proxy  = "http://proxy.example.com:8080"
-  https_proxy = "http://proxy.example.com:8080"
-  no_proxy    = "localhost,127.0.0.1,.example.com"
+{
+  hostname    = "master-01"
+  role        = "master"     # or "worker"
+  mac_address = "aa:bb:cc:dd:ee:01"
 }
 ```
 
-### Custom Operators
-Deploy enterprise operators automatically:
-- Cilium for advanced networking
-- ACI Operator for Cisco integration
-- GPU Operator for AI/ML workloads
+**Important**: OpenShift requires exactly 3 master nodes for HA clusters.
 
-### Resource Count
-Total resources created: **18**
-- 1 validation resource
-- 6 host resources (3 masters + 3 workers)
-- 5 custom manifest resources
-- 1 proxy configuration
-- 1 NTP configuration
-- 4 base cluster resources
+## Advanced Usage
 
-## Files Generated
+### Proxy Configuration
+```hcl
+proxy_settings = {
+  http_proxy  = "http://proxy.example.com:8080"
+  https_proxy = "https://proxy.example.com:8080"
+  no_proxy    = "127.0.0.1,localhost,.local"
+}
+```
 
-The configuration creates several output files in `tmp/`:
-- `cluster_response.json`: Cluster metadata
-- `proxy_config.json`: Proxy configuration
-- `ntp_config.json`: NTP configuration
-- `iso_response.json`: Discovery ISO information
-- `manifests/`: Directory with all custom operator manifests
+### Custom Manifests
+```hcl
+custom_manifests = [
+  {
+    filename = "my-config.yaml"
+    content  = "apiVersion: v1\nkind: ConfigMap\n..."
+  }
+]
+```
 
-## Contributing
+## Monitoring & Troubleshooting
+### Check Status
+```bash
 
-This project provides a modern Terraform-based approach to OpenShift cluster deployment, replacing traditional Python-based tools with Infrastructure-as-Code best practices. Perfect for FlexPod and enterprise environments requiring advanced networking, GPU support, and proxy configurations.
+# Check current status
+terraform output cluster_status
+
+# View all outputs
+terraform output
+```
+
+### Common Commands
+```bash
+# Get discovery ISO URL
+terraform output discovery_iso_url
+
+# Get cluster ID  
+terraform output cluster_id
+
+# Get infra-env ID
+terraform output infra_env_id
+```
+
+### Log Files
+- `tmp/validation.log` - Configuration validation
+- `tmp/cluster_response.json` - Cluster creation response
+- `tmp/infra_env_response.json` - Infrastructure environment details
+- `tmp/iso_download.json` - ISO download information
+
+##  Cleanup
+
+```bash
+# Destroy the cluster and all resources
+terraform destroy
+
+# Clean up temporary files
+make clean
+```
+
+## API Integration
+
+This implementation uses the Red Hat Assisted Installer API:
+
+- **Cluster Creation**: `POST /api/assisted-install/v2/clusters`
+- **Infrastructure Environment**: `POST /api/assisted-install/v2/infra-envs`
+- **ISO Generation**: `GET /api/assisted-install/v2/infra-envs/{id}/downloads/image-url`
+- **Status Monitoring**: `GET /api/assisted-install/v2/clusters/{id}`
+
+## Additional Resources
+
+- [OpenShift Assisted Installer Documentation](https://docs.openshift.com/container-platform/latest/installing/installing_on_prem_assisted/index.html)
+- [OCM CLI Documentation](https://github.com/openshift-online/ocm-cli)
+- [Red Hat Console](https://console.redhat.com/)
