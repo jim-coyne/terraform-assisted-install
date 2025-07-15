@@ -1,0 +1,20 @@
+cluster_name          = "my-openshift-cluster"
+openshift_version     = "4.14"
+base_dns_domain       = "example.com"
+host_network_cidr     = "192.168.1.0/24"
+ssh_public_key        = "ssh-rsa AAAAB3NzaC1yc2E..."
+pull_secret          = "{\"auths\":{...}}"
+api_token            = "your-api-token-here"
+
+hosts = [
+  {
+    hostname    = "master-1"
+    role        = "master"
+    mac_address = "00:50:56:12:34:56"
+  },
+  {
+    hostname    = "worker-1"
+    role        = "worker"
+    mac_address = "00:50:56:12:34:57"
+  }
+]
