@@ -1,6 +1,6 @@
 # Terraform Assisted Install - Red Hat OpenShift Cluster Deployment
 
-This Terraform configuration provides an Infrastructure-as-Code approach to deploying OpenShift clusters using the **Red Hat Assisted Installer API** service with enterprise features and OCM authentication.
+This Terraform configuration provides an Infrastructure-as-Code approach to deploying OpenShift clusters using the **Red Hat Assisted Installer API** 
 
 ## Prerequisites
 
@@ -25,27 +25,15 @@ brew install ocm
 Download from https://github.com/openshift-online/ocm-cli/releases
 
 ### Login to OCM
-
-**Get your offline token:**
-1. Visit https://console.redhat.com/openshift/token
-2. Copy the "Offline Token" (it starts with `eyJ...`)
-
-**Login with the token:**
 ```bash
-ocm login --token=YOUR_OFFLINE_TOKEN_HERE
+./ocm-browser-auth.sh
 ```
 
 **Verify authentication:**
 ```bash
 ocm whoami
 ```
-
-## Quick Setup & Deployment
-
 ### Prerequisites Check
-```bash
-# Verify OCM is installed and authenticated
-ocm whoami
 
 # Verify Terraform is installed
 terraform version
@@ -113,7 +101,6 @@ terraform output cluster_status
 ├── modules/
 │   └── assisted-installer/ # Assisted installer module
 ├── scripts/
-│   ├── get-discovery-iso.sh    # Get ISO download URL
 │   ├── monitor-cluster.sh      # Monitor cluster status
 │   └── setup-credentials.sh   # Setup script
 └── tmp/                   # Temporary files (auto-generated)
