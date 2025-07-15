@@ -52,20 +52,17 @@ After deployment, get the discovery ISO URL:
 ```bash
 terraform output discovery_iso_url
 ```
-# Download the discovery ISO
+### Download the discovery ISO
 ```bash
 curl -L "$(terraform output -raw discovery_iso_url)" -o discovery.iso
 ```
-# Boot your target hosts from this ISO
-# Hosts will automatically register with the cluster
+Boot your target hosts from this ISO
+Hosts will automatically register with the cluster
 
-
-# Check cluster status
+### Check cluster status
 ```bash
 terraform output cluster_status
 ```
-
-## Configuration
 
 ### Required Variables
 - **`cluster_name`**: Name of your OpenShift cluster
